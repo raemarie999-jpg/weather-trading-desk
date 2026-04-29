@@ -45,18 +45,24 @@ def get_run_detail(run_id):
 # 3. FETCH STATION FULL DATA
 # -----------------------------
 def fetch_station(station):
-    run_id = get_latest_run_id(station)
+    url = f"https://api.minutetemp.com/api/v1/stations/{station}/forecast/runs"
+    r = requests.get(url, headers=headers)
 
-    if not run_id:
+    if r.status_code != 200:
+        print("ERROR:", station, r.status_code, r.text[:200])
         return None
+
+    data = r.json()
+
+    latest_run = data["data"]["runs"][0]
 
     print("======")
     print("STATION:", station)
-    print("RUN ID:", run_id)
+    print("RUN ID:", latest_run["id"])
+    print("MODEL:", latest_run.get("model_id"))
 
-    detail = get_run_detail(run_id)
-
-    return detail
+    # IMPORTANT: return FULL run object (this is where forecast lives)
+    return latest_run
 
 
 # -----------------------------
