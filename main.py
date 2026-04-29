@@ -3,55 +3,31 @@ import os
 import json
 
 API_KEY = os.getenv("MINUTETEMP_API_KEY")
-
-headers = {
-    "X-API-Key": API_KEY
-}
+headers = {"X-API-Key": API_KEY}
 
 stations = ["KDFW", "KORD"]
 
-def get_station_data(station):
+def fetch_station(station):
     url = f"https://api.minutetemp.com/api/v1/stations/{station}/forecast/runs"
     r = requests.get(url, headers=headers)
 
     print("======")
-    print(station)
+    print("STATION:", station)
     print("STATUS:", r.status_code)
 
     data = r.json()
+
+    # SAFETY CHECK (important)
+    if "data" not in data or "runs" not in data["data"]:
+        print("BAD RESPONSE:", data)
+        return None
+
     return data["data"]["runs"][0]
 
-dfw = get_station_data("KDFW")
-ord = get_station_data("KORD")
+results = {}
 
-# --- minimal feature extraction ---
-def safe_temp(run):
-    # we don't fully trust schema yet → defensive
-    return run.get("temperature", 0)
+for s in stations:
+    results[s] = fetch_station(s)
 
-dfw_temp = safe_temp(dfw)
-ord_temp = safe_temp(ord)
-
-delta = dfw_temp - ord_temp
-
-# --- simple signal logic (we will upgrade later to full model engine) ---
-if delta > 2:
-    signal = "LONG DFW"
-elif delta < -2:
-    signal = "LONG KORD"
-else:
-    signal = "FLAT"
-
-output = {
-    "timestamp": dfw.get("fetched_at"),
-    "contract": "DFW vs KORD temp spread",
-    "edge": delta,
-    "signal": signal,
-    "risk": "LOW" if abs(delta) < 3 else "MED"
-}
-
-print("====== SIGNAL ======")
-print(output)
-
-with open("signals.json", "w") as f:
-    json.dump(output, f)
+print("====== FINAL OUTPUT ======")
+print(json.dumps(results, indent=2))
