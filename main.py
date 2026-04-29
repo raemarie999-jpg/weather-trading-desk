@@ -7,15 +7,11 @@ headers = {
     "X-API-Key": API_KEY
 }
 
-stations = ["KDFW", "KORD"]
+run_id = "019ddb23-e09f-722e-8094-0983a865ee6f"
 
-for station in stations:
+url = f"https://api.minutetemp.com/api/v1/forecast/runs/{run_id}"
 
-    url = f"https://api.minutetemp.com/api/v1/stations/{station}/forecast/runs"
+r = requests.get(url, headers=headers)
 
-    r = requests.get(url, headers=headers)
-
-    print("======")
-    print(station)
-    print("STATUS:", r.status_code)
-    print(r.text[:1000])
+print(r.status_code)
+print(r.text[:3000])
