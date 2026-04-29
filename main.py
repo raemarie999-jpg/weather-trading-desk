@@ -1,33 +1,21 @@
-import json
-import random
-from datetime import datetime
+import requests
+import os
 
-def generate_signal():
+API_KEY = os.getenv("MINUTETEMP_API_KEY")
 
-    edge = round(random.uniform(-0.18, 0.18), 3)
+headers = {
+    "X-API-Key": API_KEY
+}
 
-    if edge > 0.08:
-        signal = "STRONG LONG"
-    elif edge > 0.03:
-        signal = "LONG"
-    elif edge < -0.08:
-        signal = "STRONG SHORT"
-    elif edge < -0.03:
-        signal = "SHORT"
-    else:
-        signal = "NO TRADE"
+stations = ["KDFW", "KORD"]
 
-    return {
-        "timestamp": str(datetime.now()),
-        "contract": "DFW Above 90",
-        "edge": edge,
-        "signal": signal,
-        "risk": "MODERATE"
-    }
+for station in stations:
 
-data = generate_signal()
+    url = f"https://api.minutetemp.com/api/v1/stations/{station}/forecast/runs"
 
-with open("signals.json", "w") as f:
-    json.dump(data, f, indent=2)
+    r = requests.get(url, headers=headers)
 
-print("signals updated")
+    print("======")
+    print(station)
+    print("STATUS:", r.status_code)
+    print(r.text[:1000])
