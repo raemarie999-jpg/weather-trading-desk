@@ -23,6 +23,7 @@ def fetch_station(station):
         return None
 
     return data["data"]["runs"][0]
+    print(json.dumps(data["data"]["runs"][0], indent=2))
 
 results = {}
 
